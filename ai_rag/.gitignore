@@ -1,0 +1,4 @@
+*.log
+bugdbdata
+chromadb
+LoadProperties.py
