@@ -1,4 +1,4 @@
-# README: Streamlit ChatBot with Dynamic Retrieval and AI Responses with RAG
+# Streamlit ChatBot with Dynamic Retrieval and AI Responses with RAG
 
 ## Overview
 - This project demonstrates how to process .txt files from a directory, generate embeddings using Oracle Cloud Infrastructure's (OCI) GenAI Embeddings, and store them in a Chroma vector database for efficient retrieval.
