@@ -89,7 +89,13 @@ python create-db.py
 4. Open the application in your browser (usually at `http://localhost:8501`).
 
 ### Running the Application in docker
-1. ...
+```
+docker build -t chat-bot-db:latest .
+docker save -o chat-bot-db.tar chat-bot-db:latest
+...
+docker load -i chat-bot-db.tar
+docker run -d  -p 8000:8000 -p 8501:8501 chat-bot-db
+```
    
 ### Adjusting Settings
 - Use the **sidebar** to modify `search_type` and `k` dynamically during runtime.
