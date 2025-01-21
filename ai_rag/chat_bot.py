@@ -25,11 +25,13 @@ def create_chain(search_type="mmr", search_kwargs={"k": 5}, max_history_messages
     db = Chroma(client=client, embedding_function=embeddings)
     retv = db.as_retriever(serach_type=search_type, search_kwargs=search_kwargs)
 
+
+
     llm = ChatOCIGenAI(
         model_id=properties.getModelName(),
         service_endpoint=properties.getEndpoint(),
         compartment_id=properties.getCompartment(),
-        model_kwargs={"max_tokens": 500, "prompt_truncation": "AUTO_PRESERVE_ORDER"}  # Enable truncation
+        model_kwargs={"max_tokens": 500, "prompt_truncation": "AUTO_PRESERVE_ORDER"},  # Enable truncation
         )
     memory = ConversationBufferMemory(
         llm=llm,
@@ -46,16 +48,34 @@ def create_chain(search_type="mmr", search_kwargs={"k": 5}, max_history_messages
 
     return qa
 
+
 #Step 2 - create chain, here we create a ConversationalRetrievalChain.
 
 chain = create_chain()
 
 #Step 3 - here we declare a chat function
 def chat(llm_chain, user_input):
+
+    default_prompt = (
+        "You are a helpful support engineer. Please answer questions based on the data stored in Chroma DB. "
+        "If you can't find relevant information, let the user know."
+        "\n\nSample Prompts for Guidance:\n"
+        "1. 'You are a support engineer. Please use Chroma DB to answer the following question. If you don't find relevant data, say, \"I'm sorry, I couldn't find the information you requested.\"'\n"
+        "2. 'Act as a database assistant with access to Chroma DB. Use the stored data to answer the following query, providing references for any information you retrieve. If data is unavailable, let the user know and suggest alternative sources.'\n"
+        "3. 'As a support engineer, analyze the user's query and retrieve relevant documents from Chroma DB. Use these documents to generate a comprehensive answer. If no documents match the query, explain this to the user and avoid making assumptions.'\n"
+        "4. 'You are tasked to fetch and summarize data stored in Chroma DB. For every answer, include a list of references from the source documents. If no data is found, respond with, \"No data available in the database for this query.\"'\n"
+        "5. 'Your role is to assist users by answering their questions based on data stored in Chroma DB. Always ensure your answers are accurate and derived from the database. If you cannot find an answer, inform the user politely and offer to assist further.'"
+    )
+
     # generate a prediction for a prompt
-    bot_json = llm_chain.invoke(user_input)
-    print("bot json is ->", bot_json )
-    return {"bot_response": bot_json}
+    bot_json = llm_chain.invoke(f"{default_prompt}\n\n{user_input}")
+    print("bot json is ->", bot_json)
+
+    # Extract the 'answer' and 'source_documents' keys
+    answer = bot_json.get("answer", "No answer found.")
+    source_documents = bot_json.get("source_documents", [])
+
+    return {"bot_response": {"answer": answer, "source_documents": source_documents}}
 
 #Step 4 - here we setup Streamlit text input and pass input text to chat function.
 # chat function returns the response and we print it.
@@ -92,7 +112,7 @@ if __name__ == "__main__":
             st.session_state.messages.append({"role" : "chatbot", "content" : bot_response})
 
             for message in st.session_state.messages:
-                st.markdown("**Question: " + message['content']['bot_response']['question'] + "**")
+                st.markdown("**Question: " + user_input + "**")
 
                 st.write("Answer: ", message['content']['bot_response']['answer'])
             # with col2:
