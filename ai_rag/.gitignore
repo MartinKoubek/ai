@@ -2,3 +2,5 @@
 bugdbdata
 chromadb
 LoadProperties.py
+oci/*
+config.json
