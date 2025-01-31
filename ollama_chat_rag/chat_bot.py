@@ -20,6 +20,17 @@ with st.sidebar:
         index=0
     )
     reasoning_enabled = st.toggle("Enable Reasoning", value=False)
+    temperature = st.slider("Temperature", min_value=0.1, max_value=1.0, value=0.3, step=0.1)
+
+    # Add a button to stop response
+    if st.button("Stop response"):
+        st.session_state.stop_response = True
+        st.warning("Response generation stopped.")
+
+    # Add a button to delete chat history
+    if st.button("Delete Chat History"):
+        st.session_state.message_log = [{"role": "ai", "content": "Hi! I'm DeepSeek. How can I help you code today? 💻"}]
+        st.success("Chat history deleted!")
 
 
 # initiate the chat engine
@@ -27,7 +38,7 @@ with st.sidebar:
 llm_engine=ChatOllama(
     model=selected_model,
     base_url="http://localhost:11434",
-    temperature=0.3,
+    temperature=temperature,
     streaming=True  # Enable streaming for incremental responses
 )
 
@@ -41,7 +52,6 @@ system_prompt = SystemMessagePromptTemplate.from_template(
 # Session state management
 if "message_log" not in st.session_state:
     st.session_state.message_log = [{"role": "ai", "content": "Hi! I'm DeepSeek. How can I help you code today? 💻"}]
-
 
 # Initialize stop flag in session state
 if "stop_response" not in st.session_state:
@@ -58,11 +68,6 @@ with chat_container:
 
 # Chat input and processing
 user_query = st.chat_input("Type your coding question here...")
-
-# Place the stop button below the chat input
-if st.button("Stop Response"):
-    st.session_state.stop_response = True
-    st.warning("Response generation stopped.")
 
 def generate_ai_response(prompt_chain):
     processing_pipeline=prompt_chain | llm_engine | StrOutputParser()
